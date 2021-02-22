@@ -1,4 +1,5 @@
 from colorama import Back, Fore
+import matplotlib.pyplot as plt
 
 str_len = 2
 spam_str = "spam!"
@@ -72,16 +73,38 @@ def calc_p_test_line(test_str, weights_dict):
 
 
 def print_results(test_dataw, weights_arr):
+	spm = 0
+	nspm = 0
 	for item in test_dataw:
 		res = calc_p_test_line(item, weights_arr)
+		string = ""
 		if res[3] == spam_str:
-			print(Back.RED + Fore.BLACK + "headline - " + str(" ".join(res[0])) + ", P not-spam - " + str(
-				round(res[1], 3)) + ", P spam - " + str(round(res[2], 3)) + ", so it is - " + res[3])
+			string += Back.RED + Fore.BLACK
+			spm += 1
 		else:
-			print(
-				Back.GREEN + Fore.BLACK + "headline - " + str(" ".join(res[0])) + ", P not-spam - " + str(
-					round(res[1], 3)) + ", P spam - " + str(
-					round(res[2], 3)) + ", so it is - " + res[3])
+			string += Back.GREEN + Fore.BLACK
+			nspm += 1
+		string += "headline - " + str(" ".join(res[0])) + ", P not-spam - " + str(
+			round(res[1], 3)) + ", P spam - " + str(
+			round(res[2], 3)) + ", so it is - " + res[3]
+		print(string)
+	return [nspm, spm]
+
+
+def run_partial(test, spam, not_spam):
+	print(
+		Back.CYAN + Fore.BLACK + "running on spm count " + str(len(spam)) + " non_spm count " + str(len(not_spam)))
+	# [["word", times]]
+	spam_dict = create_dict(spam)
+	not_spam_dict = create_dict(not_spam)
+
+	# [["word", not_spam_times, spam_times]]
+	overall_dict = create_not_spam_spam_dict(not_spam_dict, spam_dict)
+
+	# [["word", not_spam_times, spam_times]]
+	weights_arr = create_weights(overall_dict)
+
+	return print_results(test, weights_arr)
 
 
 def main():
@@ -92,7 +115,7 @@ def main():
 		"new greeting text",
 		"Free sales party",
 		"free file for you",
-		"free file upload"
+		"free file upload",
 		"Значит ли, что новые телефоны рассчитаны на животных",
 		"Электричество платное для животных",
 		"Новые животные поступили на продажу",
@@ -130,18 +153,16 @@ def main():
 		"Видит ли электричество животных",
 		"Почему не стоит пользоваться электричеством"
 	]
-
-	# [["word", times]]
-	spam_dict = create_dict(spam)
-	not_spam_dict = create_dict(not_spam)
-
-	# [["word", not_spam_times, spam_times]]
-	overall_dict = create_not_spam_spam_dict(not_spam_dict, spam_dict)
-
-	# [["word", not_spam_times, spam_times]]
-	weights_arr = create_weights(overall_dict)
-
-	print_results(test, weights_arr)
+	# побудувати графік залежності проценту коректних класів, визначених
+	# за допомогою моделі класифікації, від об’єму вибірки з п.2;
+	plot_data = [[], []]
+	for i in range(1, len(spam)):
+		plot_data[0].append(i)
+		plot_data[1].append(run_partial(test, spam[:i], not_spam[:i])[0])
+	plt.ylabel("training samples")
+	plt.xlabel("non-spam data found")
+	plt.plot(plot_data[1], plot_data[0])
+	plt.show()
 
 
 if __name__ == '__main__':
