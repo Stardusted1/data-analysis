@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.cluster.vq import kmeans
+from sklearn.datasets import make_blobs
 
 data_file = "data.csv"
 
@@ -20,39 +22,33 @@ def import_data():
 				data = data.reshape((2, 300))
 			csvfile.close()
 			return data
-	# spamreader = csv.reader(csvfile, delimiter=', ', quotechar='|')
-	# for row in spamreader:
-	# 	print(', '.join(row))
 	except Exception:
 		print(Exception)
 	pass
 
 
 def main():
+	n_samples = 350
+	n_components = 4
 
-	generatePoints(x, y)
+	X, y_true = make_blobs(n_samples=n_samples, centers=n_components,
+	                       cluster_std=0.8, random_state=0)
+	X = X[:, ::-1]
 
-	mux, sigmax = 0.5, 0.2
-	x = np.random.normal(mux, sigmax, size=300)
+	# Calculate seeds from kmeans++
+	centers_init, indices = kmeans(X, n_components)
 
-	muy, sigmay = 0.2, 0.1
-	y = np.random.normal(mux, size=300)
+	# Plot init seeds along side sample data
+	plt.figure(1)
+	colors = ['#4EACC5', '#FF9C34', '#4E9A06', '#4E2A24']
 
-	# plt.scatter(x, y)
-	# plt.show()
+	for k, col in enumerate(colors):
+		cluster_data = y_true == k
+		plt.scatter(X[cluster_data, 0], X[cluster_data, 1],
+		            c=col, marker='.', s=10)
 
-	data = import_data()
-	export_data([data.tolist(), data.tolist()])
-
-	plt.scatter(data[0], data[1])
+	plt.scatter(centers_init[:, 0], centers_init[:, 1], c='#000', marker="x", s=50)
 	plt.show()
-
-
-def generatePoints():
-	mux, sigmax = 0.1, 0.2
-	x = np.random.normal(mux, sigmax, size=300)
-	muy, sigmay = 0.2, 0.1
-	y = np.random.normal(mux, size=300)
 
 
 if __name__ == '__main__':
