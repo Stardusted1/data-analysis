@@ -14,8 +14,8 @@ def google(audio):
 
 
 def from_file(filename):
-	harvard = sr.AudioFile(filename)
-	with harvard as source:
+	input_file = sr.AudioFile(filename)
+	with input_file as source:
 		audio = r.record(source)
 		text = google(audio)
 		file = open("result.txt", mode="w")
@@ -26,14 +26,17 @@ def from_file(filename):
 def from_mic():
 	mic = sr.Microphone(device_index=1)
 	with mic as source:
-		audio = r.record(source, duration=5)
-		print(r.recognize_google(audio, language="ru-RU"))
+		while True:
+			audio = r.record(source, duration=5)
+			print(r.recognize_google(audio, language="ru-RU"))
+			a = input("exit? y/n")
+			if a == "y":
+				break
 
 
 def main():
-	print(sr.Microphone.list_microphone_names())
-	# from_file("hello.wav")
-	from_mic()
+	from_file("sample1.wav")
+	# from_mic()
 
 
 if __name__ == '__main__':
